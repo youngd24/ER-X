@@ -18,7 +18,7 @@
 #
 # TODO/ISSUES:
 # 
-#   * Added error detection, there's none right now.
+#   * Add better error detection.
 #   * Added emailing of results, need to see how the ERX email works.
 #
 ###############################################################################
@@ -27,7 +27,6 @@
 ###############################################################################
 #                              V A R I A B L E S
 ###############################################################################
-DEBUG=""
 EMAIL="No"
 MAILTO="me@you.com"
 
@@ -47,7 +46,12 @@ for host in $TFTP_HOSTS; do
 	echo "Backing up to $host"
 	${VYCMD} begin
 	${VYCMD} save tftp://$host/$BKPFILE
+	RETVAL=$?
+	if [ $RETVAL != 0 ]; then
+		echo "Backup to $host failed"
+	else
+		echo "Backup to $host successful"
+	fi
 done
-
 
 exit 0
