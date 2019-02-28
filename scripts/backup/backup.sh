@@ -13,6 +13,7 @@
 #
 #   * Destinations must have TFTP installed and working.
 #   * Adjust variables then run it manually or schedule it.
+#   * Copy to /config/scripts so it survives upgrades.
 #   * Change the save command to ftp or other if you want.
 #     - Options are:
 #         scp://<user>:<passwd>@<host>/<file>
@@ -31,7 +32,6 @@
 #   * Add better error detection.
 #   * Added better logging.
 #   * Added emailing of results, need to see how the ERX email works.
-#   * Move to /config/scripts so it survives upgrades.
 #
 ###############################################################################
 
