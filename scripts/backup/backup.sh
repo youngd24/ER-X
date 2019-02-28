@@ -20,6 +20,10 @@
 #         ftp://<user>:<passwd>@<host>/<file>
 #         tftp://<host>/<file>
 #
+#   * Run the following to schedule it to run daily:
+#     - set system task-scheduler task 'Daily backup' executable path <script>
+#     - set system task-scheduler task 'Daily backup' interval days1
+#
 ###############################################################################
 #
 # TODO/ISSUES:
@@ -27,6 +31,7 @@
 #   * Add better error detection.
 #   * Added better logging.
 #   * Added emailing of results, need to see how the ERX email works.
+#   * Move to /config/scripts so it survives upgrades.
 #
 ###############################################################################
 
