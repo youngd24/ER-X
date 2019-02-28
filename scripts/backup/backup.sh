@@ -49,6 +49,13 @@ TFTP_HOSTS="dns01 dns02"
 ###############################################################################
 #                                   M A I N
 ###############################################################################
+
+# Remove the log file if it's there
+if [ -f $LOGFILE ]; then
+	rm -f $LOGFILE
+fi
+
+# Iterate through the backup hosts and do it
 for host in $TFTP_HOSTS; do
 	echo "Backing up to $host" | tee -a $LOGFILE
 	${VYCMD} begin | tee -a $LOGFILE
@@ -61,4 +68,5 @@ for host in $TFTP_HOSTS; do
 	fi
 done
 
+echo "Done" | tee -a $LOGFILE
 exit 0
