@@ -13,6 +13,12 @@
 #
 #   * Destinations must have TFTP installed and working.
 #   * Adjust variables then run it manually or schedule it.
+#   * Change the save command to ftp or other if you want.
+#     - Options are:
+#         scp://<user>:<passwd>@<host>/<file>
+#         sftp://<user>:<passwd>@<host>/<file>
+#         ftp://<user>:<passwd>@<host>/<file>
+#         tftp://<host>/<file>
 #
 ###############################################################################
 #
