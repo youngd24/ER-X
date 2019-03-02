@@ -26,6 +26,9 @@
 #     - set system task-scheduler task 'DailyBackup' executable path <script>
 #     - set system task-scheduler task 'DailyBackup' crontab-spec '0 3 * * * '
 #
+#   * Purge old backups on the TFTP server, cron this daily:
+#     - find <tftp_dir> -type f -mtime +30 -exec rm -fr {} \;
+#
 ###############################################################################
 #
 # TODO/ISSUES:
