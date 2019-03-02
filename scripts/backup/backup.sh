@@ -112,7 +112,7 @@ function logmsg() {
         # Log to syslog if set to do so using the logger command
         # TODO: add error detection/correction on the command
         if [[ ! -z $USE_SYSLOG ]]; then
-            local CMD="$LOGGER -s -i -p $PRIORITY -t $MYNAME $MESSAGE"
+            local CMD="$LOGGER -i -p $PRIORITY -t $MYNAME $MESSAGE"
             debug "CMD: $CMD"
             ${CMD}
         fi
