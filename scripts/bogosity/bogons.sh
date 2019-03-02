@@ -32,7 +32,9 @@
 #
 # STATUS: 
 #
-# VERY (very) under development still, DO NOT USE FOR REAL
+# VERY (very) under development still, DO NOT USE FOR REAL. Seriously, don't.
+#
+# https://www.team-cymru.org/Services/Bogons/bogon-bn-nonagg.txt
 #
 ################################################################################
 #
