@@ -27,6 +27,7 @@
 # USAGE:
 #
 #   * Destinations must have TFTP installed and working.
+#   * www.cyberciti.biz/faq/install-configure-tftp-server-ubuntu-debian-howto/
 #   * Adjust variables then run it manually or schedule it.
 #   * Copy to /config/scripts so it survives upgrades.
 #   * Change the save command to ftp or other if you want.
@@ -51,10 +52,35 @@
 #   * This is a constant work in progress so caveat emptor.
 #   * Add more [better|reliable] error detection.
 #   * Add better logging (using syslog too).
+#   * Needs better debug logging.
+#   * Start to use getopt for command line args.
 #   * Add emailing of results, need to see how the ER-X email works.
 #   * Find a way to make sure we're running on an ER-X and bomb out if not.
+#   * Add backup methods other than TFTP.
+#   * Find a better way to capture the output of the Vyatta cmd.
 #
 ###############################################################################
+
+
+###############################################################################
+#                              V A R I A B L E S
+###############################################################################
+MYNAME=$(basename $0)                           # Our name
+DEBUG=""                                        # Set to anything for debug
+EMAIL="No"                                      # Not working yet
+MAILTO="me@you.com"                             # Not working yet
+
+VYCMD="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper" # command line tool
+CFGDIR="/config"                                # ER-X config dir
+
+USE_SYSLOG="true"                               # Set to anything non-null to use
+LOGGER="/usr/bin/logger"                        # logger location on disk
+PRIORITY="local0.notice"                        # What to set logs to
+LOGFILE="/tmp/erx-backup.log"                   # Physical log file
+
+BKPFILE="$(hostname).cnf.$(date +%m%d%y-%H%M)"  # Name of the backup file
+BKPHOSTS="dns01 dns02"                          # Hosts to backup to
+FAILHOSTS=""                                    # Running failure tally
 
 
 ###############################################################################
@@ -68,8 +94,12 @@ typeset -f debug
 typeset -f run_command
 
 # -----------------------------------------------------------------------------
-# Print a log formatted message
-# * logger format: logger -s -i -p local0.notice -t info <message>
+#        NAME: logmsg
+# DESCRIPTION: Print a log formatted message
+#        ARGS: string(message)
+#     RETURNS: 0
+#      STATUS: Stable 
+#       NOTES: logger format: logger -i -p local0.notice -t $NAME <message>
 # -----------------------------------------------------------------------------
 function logmsg() {
     if [[ -z "$1" ]]
@@ -78,32 +108,54 @@ function logmsg() {
         return 0
     else
         local MESSAGE=$1
+
+        # Log to syslog if set to do so using the logger command
+        # TODO: add error detection/correction on the command
+        if [[ ! -z $USE_SYSLOG ]]; then
+            local CMD="$LOGGER -s -i -p $PRIORITY -t $MYNAME $MESSAGE"
+            debug "CMD: $CMD"
+            ${CMD}
+        fi
+
+        # If there's a logfile defined, log to it
+        # otherwise send to STDOUT (>&1)
         if [[ ! -z $LOGFILE ]]; then
             local NOW=`date +"%b %d %Y %T"`
             echo $NOW $1 >> $LOGFILE
         else
             local NOW=`date +"%b %d %Y %T"`
-            msg "$NOW $MESSAGE"
+            >&1 echo "$NOW $MESSAGE"
             return 0
         fi
     fi
 }
 
 # -----------------------------------------------------------------------------
-# Print a message to stderr so it doens't become part of a function return
+#        NAME: errmsg
+# DESCRIPTION: Print an error message to stderr and the log file
+#        ARGS: string(message)
+#     RETURNS: 0 or 1
+#      STATUS: Stable
+#       NOTES: 
 # -----------------------------------------------------------------------------
 function errmsg() {
     if [[ -z "$1" ]]; then
         logmsg "Usage: errmsg <message>"
         return 0
     else
+        >&2 echo "ERROR: $1"
         logmsg "ERROR: $1"
         return 1
     fi
 }
 
 # -----------------------------------------------------------------------------
-# Print a message if global $DEBUG is set to true
+#        NAME: debug
+# DESCRIPTION: Print a debug message
+#        ARGS: string(message)
+#     RETURNS: 0 or 1
+#      STATUS: Stable
+#       NOTES: 
 # -----------------------------------------------------------------------------
 function debug() {
     if [[ -z "$1" ]]
@@ -123,7 +175,12 @@ function debug() {
 }
 
 # -----------------------------------------------------------------------------
-# Run a command
+#        NAME: run_command
+# DESCRIPTION: Run an OS command (safely)
+#        ARGS: string(command)
+#     RETURNS: 0 or 1
+#      STATUS: Under Development
+#       NOTES: 
 # -----------------------------------------------------------------------------
 function run_command() {
     debug "${FUNCNAME[0]}: entering"
@@ -154,30 +211,13 @@ function run_command() {
 
 
 ###############################################################################
-#                              V A R I A B L E S
-###############################################################################
-EMAIL="No"
-MAILTO="me@you.com"
-
-VYCMD="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"
-CFGDIR="/config"
-
-USE_SYSLOG="true"
-LOGGER="/usr/bin/logger"
-PRIORITY="local0.notice"
-LOGFILE="/tmp/erx-backup.log"
-
-DATE=`date +%m%d%y-%H%M%S`
-HOSTNAME=`hostname`
-BKPFILE="$HOSTNAME.config.$DATE"
-TFTP_HOSTS="dns01 dns02"
-
-HAD_FAILED="false"
-
-
-###############################################################################
 #                                   M A I N
 ###############################################################################
+
+# Remove the log file if it's there
+if [[ -f $LOGFILE ]]; then
+	rm -f $LOGFILE
+fi
 
 # Make sure we're actually on an ER-X here
 # if [ ! $isERX ]; then
@@ -185,30 +225,52 @@ HAD_FAILED="false"
 # fi
 
 # Make sure we have the Vyatta command, if not exit with something funky
-if [ ! -f $VYCMD ]; then
-    echo "Vyatta command not installed"
-    exit 22
+if [[ ! -f $VYCMD ]]; then
+    errmsg "Vyatta command not installed"
+    #exit 22
 fi
 
-# Remove the log file if it's there
-if [ -f $LOGFILE ]; then
-	rm -f $LOGFILE
-fi
 
+logmsg "Starting on $(hostname)"
 
 # Iterate through the backup hosts and do it
-for host in $TFTP_HOSTS; do
-	echo "Backing up to $host" | tee -a $LOGFILE
-	${VYCMD} begin | tee -a $LOGFILE
-	${VYCMD} save tftp://$host/$BKPFILE | tee -a $LOGFILE
+for host in $BKPHOSTS; do
+	logmsg "Backing up $BKPFILE to $host"
+	${VYCMD} begin >> $LOGFILE 2>&1
+	${VYCMD} save tftp://$host/$BKPFILE >> $LOGFILE
 	RETVAL=$?
-	if [ $RETVAL != 0 ]; then
-		echo "Backup to $host failed" | tee -a $LOGFILE
-        HAD_FAILED="true"
+	if [[ $RETVAL != 0 ]]; then
+		logmsg "Backup to $host failed" 
+        FAILHOSTS="$FAILHOSTS $host"
 	else
-		echo "Backup to $host successful" | tee -a $LOGFILE
+		logmsg "Backup to $host successful" 
 	fi
 done
 
-echo "Done" | tee -a $LOGFILE
+# If the running failure tally is non-null, log that message
+if [[ ! -z $FAILHOSTS ]]; then
+    logmsg "The following hosts failed as backup targets: $FAILHOSTS"
+fi
+
+logmsg "Done, buh bye"
 exit 0
+
+
+
+
+
+
+
+
+###############################################################################
+#                         S E C T I O N   T E M P L A T E
+###############################################################################
+
+# -----------------------------------------------------------------------------
+#        NAME: function_template
+# DESCRIPTION: 
+#        ARGS: 
+#     RETURNS: 
+#      STATUS: 
+#       NOTES: 
+# -----------------------------------------------------------------------------
