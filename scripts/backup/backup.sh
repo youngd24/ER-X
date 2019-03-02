@@ -51,13 +51,13 @@
 # 
 #   * This is a constant work in progress so caveat emptor.
 #   * Add more [better|reliable] error detection.
-#   * Add better logging (using syslog too).
 #   * Needs better debug logging.
 #   * Start to use getopt for command line args.
 #   * Add emailing of results, need to see how the ER-X email works.
 #   * Find a way to make sure we're running on an ER-X and bomb out if not.
 #   * Add backup methods other than TFTP.
 #   * Find a better way to capture the output of the Vyatta cmd.
+#     - Maybe pipe it to logmsg somehow using $1? 
 #
 ###############################################################################
 
