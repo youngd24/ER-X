@@ -21,17 +21,18 @@
 #         ftp://<user>:<passwd>@<host>/<file>
 #         tftp://<host>/<file>
 #
-#   * Run the following to schedule it to run daily:
-#     - set system task-scheduler task 'Daily backup' executable path <script>
-#     - set system task-scheduler task 'Daily backup' interval days1
+#   * Run the following to schedule it to run daily at 03:00:
+#     (DO NOT use spaces in the task name, it'll error out)
+#     - set system task-scheduler task 'DailyBackup' executable path <script>
+#     - set system task-scheduler task 'DailyBackup' crontab-spec '0 3 * * * '
 #
 ###############################################################################
 #
 # TODO/ISSUES:
 # 
 #   * Add better error detection.
-#   * Added better logging.
-#   * Added emailing of results, need to see how the ERX email works.
+#   * Add better logging.
+#   * Add emailing of results, need to see how the ERX email works.
 #
 ###############################################################################
 
