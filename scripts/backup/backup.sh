@@ -237,7 +237,7 @@ logmsg "Starting on $(hostname)"
 for host in $BKPHOSTS; do
 	logmsg "Backing up $BKPFILE to $host"
 	${VYCMD} begin >> $LOGFILE 2>&1
-	${VYCMD} save tftp://$host/$BKPFILE >> $LOGFILE
+	${VYCMD} save tftp://$host/$BKPFILE >> $LOGFILE 2>&1
 	RETVAL=$?
 	if [[ $RETVAL != 0 ]]; then
 		logmsg "Backup to $host failed" 
