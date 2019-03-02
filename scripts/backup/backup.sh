@@ -36,12 +36,12 @@
 #         sftp://<user>:<passwd>@<host>/<file>
 #         ftp://<user>:<passwd>@<host>/<file>
 #         tftp://<host>/<file>
-#
 #   * Run the following to schedule it to run daily at 03:00:
 #     (DO NOT use spaces in the task name, it'll error out)
 #     - set system task-scheduler task 'DailyBackup' executable path <script>
 #     - set system task-scheduler task 'DailyBackup' crontab-spec '0 3 * * * '
-#
+#   * It logs to syslog as well as to a log file, if you want to monitor it
+#     catch for "backup.sh" from syslog in your SIEM, monitor system, etc.
 #   * Purge old backups on the TFTP server, cron this daily:
 #     - find <tftp_dir> -type f -mtime +30 -exec rm -fr {} \;
 #
