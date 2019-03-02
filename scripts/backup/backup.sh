@@ -140,9 +140,11 @@ function logmsg() {
 # -----------------------------------------------------------------------------
 function errmsg() {
     if [[ -z "$1" ]]; then
-        logmsg "Usage: errmsg <message>"
+        >&2 echo "Usage: errmsg <message>"
         return 0
     else
+
+        # Print to both STDERR and the logmsg dest
         >&2 echo "ERROR: $1"
         logmsg "ERROR: $1"
         return 1
