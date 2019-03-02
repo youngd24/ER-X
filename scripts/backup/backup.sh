@@ -5,7 +5,7 @@
 #
 # EdgeRouter-X Backup Script
 #
-# Copyright (C) 2019 Darren Young <darren@yhlsecurity.com>
+# Copyright (C) 2018-2019 Darren Young <darren@yhlsecurity.com>
 #
 ################################################################################
 #
