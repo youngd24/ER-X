@@ -26,10 +26,10 @@
 #
 # USAGE:
 #
+#   * Copy to /config/scripts so it survives upgrades.
+#   * Adjust variables then run it manually or schedule it.
 #   * Destinations must have TFTP installed and working.
 #   * www.cyberciti.biz/faq/install-configure-tftp-server-ubuntu-debian-howto/
-#   * Adjust variables then run it manually or schedule it.
-#   * Copy to /config/scripts so it survives upgrades.
 #   * Change the save command to ftp or other if you want.
 #     - Options are:
 #         scp://<user>:<passwd>@<host>/<file>
@@ -67,11 +67,7 @@
 ###############################################################################
 MYNAME=$(basename $0)                           # Our name
 DEBUG=""                                        # Set to anything for debug
-EMAIL="No"                                      # Not working yet
-MAILTO="me@you.com"                             # Not working yet
-
 VYCMD="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper" # command line tool
-CFGDIR="/config"                                # ER-X config dir
 
 USE_SYSLOG="true"                               # Set to anything non-null to use
 LOGGER="/usr/bin/logger"                        # logger location on disk
@@ -221,17 +217,11 @@ if [[ -f $LOGFILE ]]; then
 	rm -f $LOGFILE
 fi
 
-# Make sure we're actually on an ER-X here
-# if [ ! $isERX ]; then
-#    boom "message"
-# fi
-
 # Make sure we have the Vyatta command, if not exit with something funky
 if [[ ! -f $VYCMD ]]; then
     errmsg "Vyatta command not installed"
-    #exit 22
+    exit 22
 fi
-
 
 logmsg "Starting on $(hostname)"
 
